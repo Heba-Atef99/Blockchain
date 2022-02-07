@@ -6,15 +6,24 @@ import time
 class Node:
     def __init__(self):
         self.branches =[]
-        self.main_branch = self.Blockchain()  
+        self.main_branch = Blockchain()  
         """
         node will compare the branches and select the longest one Using for loop 
         """
-    def receive_block(self):
-        """
-        
-        """
+    def receive_block(self,block):
+        flag=False
+        for i in range(len(self.branches)):
+            if(block.owner)==self.branches[i].chain[0].owner:
+              flag=True
+              self.branches[i].append(block)
+        if flag==False:
+            new_blockchain= Blockchain()
+            proof = new_blockchain.proof_of_work(block)
+            new_blockchain.add_block(block, proof)
+            self.branches.append(new_blockchain)
+        return flag
 
+        
     def get_max_branch(self):
         max_branch = self.branches[0]
         for i in range(1, len(self.branches)):
@@ -46,9 +55,8 @@ class Node:
                 break
         #self.main_branch.extend
         for i in range(len(max_branch.chain)):
-            self.main_branch.add_block()
-            proof = self.proof_of_work(max_branch.chain[i])
-            self.add_block(max_branch.chain[i], proof)
+            proof = self.main_branch.proof_of_work(max_branch.chain[i])
+            self.main_branch.add_block(max_branch.chain[i], proof)
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
         self.index = index
