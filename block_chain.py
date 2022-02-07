@@ -105,7 +105,7 @@ class Blockchain:
         * The previous_hash referred in the block and the hash of latest block
           in the chain match.
         """
-        previous_hash = self.last_block.hash
+        previous_hash = self.last_block().hash
 
         if previous_hash != block.previous_hash:
             return False
@@ -152,10 +152,10 @@ class Blockchain:
             return False
 
 
-        new_block = Block(index=self.last_block.index + 1,
+        new_block = Block(index=self.last_block().index + 1,
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
-                          previous_hash=self.last_block.hash, 
+                          previous_hash=self.last_block().hash, 
                            owner = owner)
 
         proof = self.proof_of_work(new_block)
@@ -170,14 +170,18 @@ def main():
     print("hello world")
     miner1 = Blockchain()
     user1 = Node()
-    transaction =[{"t1": "alice sends 100 to bob "}, {"t2":"alice sends 100 to z"},{"t3":"alice sends 100 to z"}, {"t4":"a sends 40 to h"}, {"t5":"A sends 50 to z"}]
+    transaction =({"t": "alice sends 100 to bob "}, {"t":"alice sends 100 to z"},{"t":"alice sends 100 to z"}, {"t":"a sends 40 to h"}, {"t":"A sends 50 to z"})
+    t1 = {"t": "alice sends 100 to bob"}
+    t2 = {"t":"alice sends 100 to z"}
     for i in range(5):
         miner1.add_new_transaction(transaction[i])
         block = miner1.mine("miner1")
-        print("miner last enetered  block is " + miner1.last_block.transactions )
+        y = json.loads(miner1.last_block().transactions[0])
+        print("miner last enetered  block is " + y["t"])
         user1.receive_block(miner1.last_block())
     for i in range(5):
-        print("user first received block is " + user1.main_branch.chain[i].transactions )
+        z = json.loads(user1.main_branch.chain[i].transactions[0])
+        print("user first received block is " + z["t"] )
     
 
 if __name__ == "__main__":
