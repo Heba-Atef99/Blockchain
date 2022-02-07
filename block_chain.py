@@ -4,23 +4,34 @@ from multiprocessing import Condition
 import time
 
 class Node:
-    def __init__(self):
+    def __init__(self, owner):
         self.branches =[]
-        self.main_branch = Blockchain()  
+        self.owner = owner
+        self.main_branch = Blockchain(self.owner)  
         """
         node will compare the branches and select the longest one Using for loop 
         """
-    def receive_block(self,block):
+    def receive_block(self, block):
         flag=False
+        print("inside" + block.transactions[0])
         for i in range(len(self.branches)):
+            # print("inside" + str(i) + block.transctions[0])
+            # print(self.branches[i].chain[0].owner)
+            # print(self.branches[i].chain[0].transactions[0])
+            
+
             if(block.owner)==self.branches[i].chain[0].owner:
-              flag=True
-              self.branches[i].append(block)
+                flag=True
+                proof = self.branches[i].proof_of_work(block)
+                self.branches[i].add_block(block, proof)
+
         if flag==False:
-            new_blockchain= Blockchain()
+            new_blockchain= Blockchain(block.owner)
             proof = new_blockchain.proof_of_work(block)
             new_blockchain.add_block(block, proof)
             self.branches.append(new_blockchain)
+        
+        print(len(self.branches[0].chain))
         return flag
 
         
@@ -78,9 +89,10 @@ class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 2
 
-    def __init__(self):
+    def __init__(self, owner):
         self.unconfirmed_transactions = []
         self.chain = []
+        self.owner = owner
         self.create_genesis_block()
 
     def create_genesis_block(self):
@@ -89,7 +101,7 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 0, and
         a valid hash.
         """
-        genesis_block = Block(0, [], time.time(), "0", "first")
+        genesis_block = Block(0, [], time.time(), "0", self.owner)
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 
@@ -142,7 +154,7 @@ class Blockchain:
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
 
-    def mine(self, owner):
+    def mine(self):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
@@ -156,7 +168,7 @@ class Blockchain:
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
                           previous_hash=self.last_block().hash, 
-                           owner = owner)
+                           owner = self.owner)
 
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
@@ -168,20 +180,21 @@ def main():
 
     # for one miner, and one user create blocks then send it to the user using receive block.
     print("hello world")
-    miner1 = Blockchain()
-    user1 = Node()
+    miner1 = Blockchain("miner1")
+    user1 = Node("user1")
     #transaction =({"t": "alice sends 100 to bob "}, {"t":"alice sends 100 to z"},{"t":"alice sends 100 to z"}, {"t":"a sends 40 to h"}, {"t":"A sends 50 to z"})
     transaction =["alice sends 100 to bob ", "alice sends 100 to z", "alice sends 100 to z", "a sends 40 to h", "A sends 50 to z"]
     for i in range(5):
         miner1.add_new_transaction(transaction[i])
-        block = miner1.mine("miner1")
+        block = miner1.mine()
         #y = json.loads(miner1.last_block().transactions[0])
-        print("miner last enetered  block is " +miner1.last_block().transactions[0])
+        # print("miner enetered block " + str(i) + " is " + miner1.last_block().transactions[0])
         user1.receive_block(miner1.last_block())
-    print(len(user1.main_branch.chain))
+
+    print(len(user1.branches[0].chain))
     for i in range(len(user1.main_branch.chain)):
         #z = json.loads(user1.main_branch.chain[i].transactions[0])
-        print("user first received block is " +user1.main_branch.chain[i].transactions[0] )
+        print("user first received block is " + user1.main_branch.chain[i].transactions[0])
     
 
 if __name__ == "__main__":
