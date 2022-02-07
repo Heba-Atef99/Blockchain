@@ -21,6 +21,21 @@ class Node:
                 max_branch =  self.branches[i]
         return max_branch
 
+    """
+        
+    """   
+    def verify_max_branch(self,max_b):
+        max_branch = max_b
+        is_there_max = False
+        if len(self.branches)==1:
+            return True
+        for i in range(len(self.branches)):
+            if abs((len(max_branch.chain) - len(self.branches[i].chain)))>=4:
+                max_branch = max_branch if  (len(max_branch.chain) > len(self.branches[i].chain)) else   self.branches[i]
+                is_there_max = True
+        max_b = max_branch
+        return is_there_max     
+
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
         self.index = index
