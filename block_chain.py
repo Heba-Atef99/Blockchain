@@ -1,11 +1,12 @@
 from hashlib import sha256
 import json
+from multiprocessing import Condition
 import time
 
 class Node:
     def __init__(self):
         self.branches =[]
-        self.mainbranch = self.Blockchain()  
+        self.main_branch = self.Blockchain()  
         """
         node will compare the branches and select the longest one Using for loop 
         """
@@ -36,6 +37,18 @@ class Node:
         max_b = max_branch
         return is_there_max     
 
+    # check longest chain function
+    def choose_longest_chain(self):
+        while True:
+            max_branch = self.get_max_branch()
+            Condition = self.verify_max_branch(max_branch)
+            if Condition == True:
+                break
+        #self.main_branch.extend
+        for i in range(len(max_branch.chain)):
+            self.main_branch.add_block()
+            proof = self.proof_of_work(max_branch.chain[i])
+            self.add_block(max_branch.chain[i], proof)
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
         self.index = index
