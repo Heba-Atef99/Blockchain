@@ -163,3 +163,22 @@ class Blockchain:
 
         self.unconfirmed_transactions = []
         return new_block.index
+
+def main():
+
+    # for one miner, and one user create blocks then send it to the user using receive block.
+    print("hello world")
+    miner1 = Blockchain()
+    user1 = Node()
+    transaction =[{"t1": "alice sends 100 to bob "}, {"t2":"alice sends 100 to z"},{"t3":"alice sends 100 to z"}, {"t4":"a sends 40 to h"}, {"t5":"A sends 50 to z"}]
+    for i in range(5):
+        miner1.add_new_transaction(transaction[i])
+        block = miner1.mine("miner1")
+        print("miner last enetered  block is " + miner1.last_block.transactions )
+        user1.receive_block(miner1.last_block())
+    for i in range(5):
+        print("user first received block is " + user1.main_branch.chain[i].transactions )
+    
+
+if __name__ == "__main__":
+    main()
