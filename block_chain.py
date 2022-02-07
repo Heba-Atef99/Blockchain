@@ -23,12 +23,16 @@ class Node:
             if(block.owner)==self.branches[i].chain[0].owner:
                 flag=True
                 proof = self.branches[i].proof_of_work(block)
+                # print("add blk 1")
                 self.branches[i].add_block(block, proof)
 
-        if flag==False:
-            new_blockchain= Blockchain(block.owner)
+        if flag == False:
+            new_blockchain = Blockchain(block.owner)
             proof = new_blockchain.proof_of_work(block)
+            # print("add blk 2")
             new_blockchain.add_block(block, proof)
+            # print(flag2)
+            # breakpoint()
             self.branches.append(new_blockchain)
         
         print(len(self.branches[0].chain))
@@ -67,7 +71,9 @@ class Node:
         #self.main_branch.extend
         for i in range(len(max_branch.chain)):
             proof = self.main_branch.proof_of_work(max_branch.chain[i])
+            # print("add blk 3")
             self.main_branch.add_block(max_branch.chain[i], proof)
+
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
         self.index = index
@@ -101,7 +107,7 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 0, and
         a valid hash.
         """
-        genesis_block = Block(0, [], time.time(), "0", self.owner)
+        genesis_block = Block(0, [], 1, "0", self.owner)
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 
@@ -117,10 +123,17 @@ class Blockchain:
         * The previous_hash referred in the block and the hash of latest block
           in the chain match.
         """
+        # print("inside" + block.transactions[0])
+
         previous_hash = self.last_block().hash
+        # print(previous_hash)
+        # print(block.previous_hash)
 
         if previous_hash != block.previous_hash:
             return False
+
+        # print(self.is_valid_proof(block, proof))
+        # breakpoint()
 
         if not self.is_valid_proof(block, proof):
             return False
@@ -168,7 +181,7 @@ class Blockchain:
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
                           previous_hash=self.last_block().hash, 
-                           owner = self.owner)
+                          owner = self.owner)
 
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
