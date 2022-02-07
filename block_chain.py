@@ -2,14 +2,26 @@ from hashlib import sha256
 import json
 import time
 
+class node:
+    def __init__(self):
+        self.branches =[]
+        self.mainbranch = self.Blockchain()  
+        """
+        node will compare the branches and select the longest one Using for loop 
+        """
+    def receive_block(self):
+        """
+        
+        """
 
 class Block:
-    def __init__(self, index, transactions, timestamp, previous_hash):
+    def __init__(self, index, transactions, timestamp, previous_hash, owner):
         self.index = index
         self.transactions = transactions
         self.timestamp = timestamp
         self.previous_hash = previous_hash
         self.nonce = 0
+        self.owner = owner
 
     def compute_hash(self):
         """
@@ -34,7 +46,7 @@ class Blockchain:
         the chain. The block has index 0, previous_hash as 0, and
         a valid hash.
         """
-        genesis_block = Block(0, [], time.time(), "0")
+        genesis_block = Block(0, [], time.time(), "0", "first")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 
@@ -87,7 +99,7 @@ class Blockchain:
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
 
-    def mine(self):
+    def mine(self, owner):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
@@ -100,7 +112,8 @@ class Blockchain:
         new_block = Block(index=self.last_block.index + 1,
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
-                          previous_hash=self.last_block.hash)
+                          previous_hash=self.last_block.hash, 
+                           owner = owner)
 
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
