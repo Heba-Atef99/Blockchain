@@ -2,7 +2,7 @@ from hashlib import sha256
 import json
 import time
 
-class node:
+class Node:
     def __init__(self):
         self.branches =[]
         self.mainbranch = self.Blockchain()  
@@ -13,6 +13,13 @@ class node:
         """
         
         """
+
+    def get_max_branch(self):
+        max_branch = self.branches[0]
+        for i in range(1, len(self.branches)):
+            if len(max_branch.chain) < len(self.branches[i].chain):
+                max_branch =  self.branches[i]
+        return max_branch
 
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
