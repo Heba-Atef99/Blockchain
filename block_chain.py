@@ -170,18 +170,18 @@ def main():
     print("hello world")
     miner1 = Blockchain()
     user1 = Node()
-    transaction =({"t": "alice sends 100 to bob "}, {"t":"alice sends 100 to z"},{"t":"alice sends 100 to z"}, {"t":"a sends 40 to h"}, {"t":"A sends 50 to z"})
-    t1 = {"t": "alice sends 100 to bob"}
-    t2 = {"t":"alice sends 100 to z"}
+    #transaction =({"t": "alice sends 100 to bob "}, {"t":"alice sends 100 to z"},{"t":"alice sends 100 to z"}, {"t":"a sends 40 to h"}, {"t":"A sends 50 to z"})
+    transaction =["alice sends 100 to bob ", "alice sends 100 to z", "alice sends 100 to z", "a sends 40 to h", "A sends 50 to z"]
     for i in range(5):
         miner1.add_new_transaction(transaction[i])
         block = miner1.mine("miner1")
-        y = json.loads(miner1.last_block().transactions[0])
-        print("miner last enetered  block is " + y["t"])
+        #y = json.loads(miner1.last_block().transactions[0])
+        print("miner last enetered  block is " +miner1.last_block().transactions[0])
         user1.receive_block(miner1.last_block())
-    for i in range(5):
-        z = json.loads(user1.main_branch.chain[i].transactions[0])
-        print("user first received block is " + z["t"] )
+    print(len(user1.main_branch.chain))
+    for i in range(len(user1.main_branch.chain)):
+        #z = json.loads(user1.main_branch.chain[i].transactions[0])
+        print("user first received block is " +user1.main_branch.chain[i].transactions[0] )
     
 
 if __name__ == "__main__":
