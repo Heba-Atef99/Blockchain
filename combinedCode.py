@@ -41,13 +41,11 @@ class Blockchain:
         self.unconfirmed_transactions = []
         self.chain = []
         self.owner = owner
-        self.newchain=[]
-        
+        self.newchain=[]   
         self.create_genesis_block()
         self.power = power
         self.branching_status=False
     
-            
     def get_max_branch(self):
         max_branch = self.newchain[0]
         for i in range(1, len(self.newchain)):
@@ -69,15 +67,14 @@ class Blockchain:
         return is_there_max  
 
     def choose_longest_chain(self):
-        
         max_branch = self.get_max_branch()
         Condition = self.verify_max_branch(max_branch)
         if Condition == True:       
            #self.main_branch.extend
            self.chain.extend(max_branch)
            self.newchain=[]
+           self.branching_status = False
                  
-
     def recieve_block(self,block):
         if self.branching_status:
             foundchain=False
@@ -248,14 +245,14 @@ class Blockchain:
             # new_block.previous_hash = 
             self.recieve_block(new_block)
 
-        # self.power = self.power - 10
+        self.power = self.power - 10
         self.unconfirmed_transactions = []
         return new_block
 
 def main():
-    miner1 = Blockchain(70, "miner1")
-    miner2 = Blockchain(70, "miner2")
-    miner3_attacker = Blockchain(70, "miner3_attacker")
+    miner1 = Blockchain(50, "miner1")
+    miner2 = Blockchain(50, "miner2")
+    miner3_attacker = Blockchain(80, "miner3_attacker")
     group=[]
     group.append(miner1)
     group.append(miner2)
@@ -283,10 +280,18 @@ def main():
     new_block = miner3_attacker.mine("miner3_attacker", 5)
     miner3_attacker.broadcast(new_block, group)
 
-    for i in range(5):
+    for i in range(7):
         miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
         new_block = miner3_attacker.mine("miner3_attacker", i+6)
         miner3_attacker.broadcast(new_block, group)
+
+        if miner1.power > 0:
+            miner1.add_new_transaction("Noura sends"+ str(100*i+10)+"to Mahi")
+            new_block = miner1.mine("miner1", i+7)
+            miner1.broadcast(new_block,group)
+            # continue
+
+
 
     #miner3_attacker.choose_longest_chain()
     i = 0
@@ -321,7 +326,7 @@ def main():
             print("miner 2 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
 
             i = 2
-        #print("***********lllllll*****************")
+        print("***********lllllll*****************")
 
     #print("\n")
     #########################################
