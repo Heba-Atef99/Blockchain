@@ -1,3 +1,4 @@
+from ast import And
 from hashlib import sha256
 import json
 import time
@@ -35,18 +36,104 @@ class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 2
 
-    def __init__(self, power):
+    def __init__(self, power, owner):
         self.unconfirmed_transactions = []
         self.chain = []
+        self.owner = owner
+        self.newchain=[]
+        
         self.create_genesis_block()
         self.power = power
+        self.branching_status=False
+    
+    def recieve_block(self,block):
+        if self.branching_status:
+            foundchain=False
+            for c in self.newchain:
+                if c[-1].owner==block.owner:
+                    block.previous_hash = c[-1].hash
+                    proof = self.proof_of_work(block)      
+                    self.add_block_newchain(block,proof,c)
+                    foundchain=True
+                    break
+
+            if foundchain==False:
+                ch = newchain[1]
+                block.previous_hash = ch[-1].hash
+                proof = self.proof_of_work(block)      
+                self.add_block_newchain(block,proof,self.newchain[1])    
+
+        else:
+            if block.index > self.last_block().index:
+                proof = self.proof_of_work(block)      
+                self.add_block(block, proof)
+
+            else:
+              self.branching_status=True
+              if len(self.newchain) == 0:
+                    ch=[]
+                    block.previous_hash = self.chain[block.index-1].hash
+                    proof = self.proof_of_work(block)      
+                    self.add_block_newchain(block, proof, ch)
+                    self.newchain.append(ch)
+                    
+                    sh=[]
+                    for i in range(block.index,len(self.chain)):
+                        sh.append(self.chain[i])
+                        
+                    del self.chain[block.index:len(self.chain)]
+                    self.newchain.append(sh)
+                  
+    def broadcast(self,block,group):
+        for i in range(len(group)):
+            current_chain=group[i]
+            if block.owner!=current_chain.owner:
+                current_chain.recieve_block(block)
+        
+        # for i in range(len(group)):
+        #     current_chain=group[i]
+        #     if block.owner!=current_chain.owner or block.index>current_chain.last_block().index or current_chain.chain[block.index].transactions !=block.transactions:
+        #         current_chain.recieve_block(block)
+
+   
+    def add_block_newchain(self, block, proof, newchain):
+        """
+        A function that adds the block to the chain after verification.
+        Verification includes:
+        * Checking if the proof is valid.
+        * The previous_hash referred in the block and the hash of latest block
+          in the chain match.
+        """
+        if len(self.newchain) == 0 :
+            # block.previous_hash = self.chain[block.index-1].hash
+            previous_hash = self.chain[block.index-1].hash
+        
+        else:
+            # block.previous_hash = newchain[-1].hash
+            previous_hash = newchain[-1].hash
+        
+        if previous_hash != block.previous_hash:
+            # print("previous_hash" + previous_hash)
+            # print("block.previous_hash" + block.previous_hash)
+            return False
+
+        # print("jjjjjj")
+
+        if not self.is_valid_proof(block, proof):
+            return False
+
+        block.hash = proof
+        newchain.append(block)
+        
+        return True
+
     def create_genesis_block(self):
         """
         A function to generate genesis block and appends it to
         the chain. The block has index 0, previous_hash as 0, and
         a valid hash.
         """
-        genesis_block = Block(0, [], time.time(), "0", "first")
+        genesis_block = Block(0, [], 0, "0", "first")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
 
@@ -99,7 +186,7 @@ class Blockchain:
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
 
-    def mine(self, owner):
+    def mine(self, owner, index):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
@@ -112,47 +199,107 @@ class Blockchain:
             return False
 
         
-        new_block = Block(index=self.last_block().index + 1,
+        new_block = Block(index=index,
                           transactions=self.unconfirmed_transactions,
                           timestamp=time.time(),
                           previous_hash=self.last_block().hash, 
                            owner = owner)
 
         proof = self.proof_of_work(new_block)
-        self.add_block(new_block, proof)
-        self.power = self.power - 10
+
+        if index == self.last_block().index + 1:     
+            self.add_block(new_block, proof)
+
+        else:
+            # new_block.previous_hash = 
+            self.recieve_block(new_block)
+
+        # self.power = self.power - 10
         self.unconfirmed_transactions = []
-        return new_block.index
+        return new_block
+
 def main():
-    miner1 = Blockchain(50)
-    miner2 = Blockchain(30)
-    chain1 = [] # no need for both, as we can access the chain from miner.chain
-    chain2 = []
-    mainbranch = []
-    transaction =["alice sends 100 to bob ", "liz sends 100 to z", "carla sends 50 to z", "a sends 40 to h", "A sends 50 to z","h sends 50 to n"]
+    miner1 = Blockchain(70, "miner1")
+    miner2 = Blockchain(70, "miner2")
+    miner3_attacker = Blockchain(70, "miner3_attacker")
+    group=[]
+    group.append(miner1)
+    group.append(miner2)
+    group.append(miner3_attacker)
+    transaction = ["Alice sends 100 to Bob ", "Liz sends 100 to Nermeen", "Carla sends 50 to Alaa", "Hager sends 40 to Ahmed", "Hadeer sends 50 to Salma","Heba sends 50 to Mariam"]
+    
     for i in range(len(transaction)):
         if miner1.power < 10:
             break
+
         else:
-            miner1.add_new_transaction(transaction[i])
-            miner1.mine("miner1")
-            chain1.append( miner1.last_block())
-            print("miner 1 enetered block " + str(i) + " is " + miner1.last_block().transactions[0])
-            #print("power 1  is: " + str(miner1.power))
-    for i in range(len(transaction)):
-        if miner2.power < 10:
-            break
-        else:
-            miner2.add_new_transaction(transaction[i])
-            miner2.mine("miner2")
-            chain2.append( miner1.last_block())
-            print("miner 2  enetered block " + str(i) + " is " + miner2.last_block().transactions[0])
-            #print("power 2  is: " + str(miner2.power))
-    if len(miner1.chain) > len(miner2.chain):
-        print("miner1 is the winner")
-        mainbranch = miner1.chain
-        for i in range(len(miner1.chain)):
-            print(miner1.chain[i])
+            if i % 2 != 0:
+                miner1.add_new_transaction(transaction[i])
+                miner1.mine("miner1", miner1.last_block().index+1)
+                miner1.broadcast(miner1.last_block(),group)
+                # print("miner 1 enetered block " + str(i+1) + " is " + miner1.last_block().transactions[0])
+
+            else:
+                miner2.add_new_transaction(transaction[i])
+                miner2.mine("miner2", miner2.last_block().index+1)
+                miner2.broadcast(miner2.last_block(),group)
+                # print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
+
+    miner3_attacker.add_new_transaction("Hadeer sends 1000 to Salma")
+    new_block = miner3_attacker.mine("miner3_attacker", 5)
+    miner3_attacker.broadcast(new_block, group)
+
+    i = 0
+    for b in miner1.chain:
+        if i == 0 : 
+            i = 1
+            continue
+         
+        print("miner 1 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+
+    print("****************************")
+    for ch in miner1.newchain:
+        for b in ch:
+            print("miner 1 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+
+            i = 2
+        print("***********lllllll*****************")
+
+    print("\n")
+    #########################################
+    i = 0
+    for b in miner2.chain:
+        if i == 0 : 
+            i = 1
+            continue
+         
+        print("miner 2 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+
+    print("****************************")
+    for ch in miner2.newchain:
+        for b in ch:
+            print("miner 2 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+
+            i = 2
+        print("***********lllllll*****************")
+
+    print("\n")
+    #########################################
+    i = 0
+    for b in miner3_attacker.chain:
+        if i == 0 : 
+            i = 1
+            continue
+         
+        print("miner 3 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+
+    print("****************************")
+    for ch in miner3_attacker.newchain:
+        for b in ch:
+            print("miner 3 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+
+            i = 2
+        print("***********lllllll*****************")
 
 if __name__ == "__main__":
     main()

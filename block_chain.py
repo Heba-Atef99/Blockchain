@@ -45,15 +45,15 @@ class Node:
             if len(max_branch.chain) < len(self.branches[i].chain):
                 max_branch =  self.branches[i]
         return max_branch
-
-    """
-        
+    
+    """ 
     """   
     def verify_max_branch(self,max_b):
         max_branch = max_b
         is_there_max = False
-        if len(self.branches)==1:
+        if len(self.branches) == 1:
             return True
+            
         for i in range(len(self.branches)):
             if abs((len(max_branch.chain) - len(self.branches[i].chain)))>=4:
                 max_branch = max_branch if  (len(max_branch.chain) > len(self.branches[i].chain)) else   self.branches[i]
@@ -200,15 +200,11 @@ def main():
     for i in range(5):
         miner1.add_new_transaction(transaction[i])
         block = miner1.mine()
-        #y = json.loads(miner1.last_block().transactions[0])
-        # print("miner enetered block " + str(i) + " is " + miner1.last_block().transactions[0])
         user1.receive_block(miner1.last_block())
 
     print(len(user1.branches[0].chain))
     for i in range(len(user1.main_branch.chain)):
-        #z = json.loads(user1.main_branch.chain[i].transactions[0])
         print("user first received block is " + user1.main_branch.chain[i].transactions[0])
     
-
 if __name__ == "__main__":
     main()
