@@ -70,7 +70,6 @@ class Blockchain:
         max_branch = self.get_max_branch()
         Condition = self.verify_max_branch(max_branch)
         if Condition == True:       
-           #self.main_branch.extend
            self.chain.extend(max_branch)
            self.newchain=[]
            self.branching_status = False
@@ -300,9 +299,9 @@ def main():
             i = 1
             continue
          
-        print("miner 1 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+        # print("miner 1 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
 
-    print("****************************")
+    # print("****************************")
     # for ch in miner1.newchain:
     #     for b in ch:
     #         print("miner 1 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
@@ -318,15 +317,15 @@ def main():
             i = 1
             continue
          
-        print("miner 2 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+        # print("miner 2 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
 
-    print("****************************")
+    # print("****************************")
     for ch in miner2.newchain:
         for b in ch:
             print("miner 2 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
 
-            i = 2
         print("***********lllllll*****************")
+        i = 2
 
     #print("\n")
     #########################################
@@ -336,9 +335,9 @@ def main():
             i = 1
             continue
          
-        print("miner 3 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+        # print("miner 3 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
 
-    print("****************************")
+    # print("****************************")
     # for ch in miner3_attacker.newchain:
     #     for b in ch:
     #         print("miner 3 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
