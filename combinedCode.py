@@ -3,18 +3,6 @@ from hashlib import sha256
 import json
 import time
 
-class node:
-    def __init__(self):
-        self.branches =[]
-        self.mainbranch = self.Blockchain()  
-        """
-        node will compare the branches and select the longest one Using for loop 
-        """
-    def receive_block(self):
-        """
-        
-        """
-
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
         self.index = index
@@ -35,7 +23,6 @@ class Block:
 class Blockchain:
     # difficulty of our PoW algorithm
     difficulty = 4
-    #print("N: " +str(difficulty) )
 
     def __init__(self, power, owner):
         self.unconfirmed_transactions = []
@@ -48,7 +35,6 @@ class Blockchain:
         self.power = power
         self.branching_status=False
     
-            
     def get_max_branch(self):
         max_branch = self.newchain[0]
         for i in range(1, len(self.newchain)):
@@ -70,15 +56,13 @@ class Blockchain:
         return is_there_max  
 
     def choose_longest_chain(self):
-        
         max_branch = self.get_max_branch()
         Condition = self.verify_max_branch(max_branch)
         if Condition == True:       
-           #self.main_branch.extend
            self.chain.extend(max_branch)
            self.newchain=[]
+           self.branching_status = False
                  
-
     def recieve_block(self,block):
         if self.branching_status:
             foundchain=False
@@ -95,7 +79,9 @@ class Blockchain:
                 block.previous_hash = ch[-1].hash
                 proof = self.proof_of_work(block)      
                 self.add_block_newchain(block,proof,self.newchain[1])    
+            
             self.choose_longest_chain()
+
         else:
             if block.index > self.last_block().index:
                 proof = self.proof_of_work(block)      
@@ -122,12 +108,6 @@ class Blockchain:
             current_chain=group[i]
             if block.owner!=current_chain.owner:
                 current_chain.recieve_block(block)
-        
-        # for i in range(len(group)):
-        #     current_chain=group[i]
-        #     if block.owner!=current_chain.owner or block.index>current_chain.last_block().index or current_chain.chain[block.index].transactions !=block.transactions:
-        #         current_chain.recieve_block(block)
-
    
     def add_block_newchain(self, block, proof, newchain):
         """
@@ -138,19 +118,13 @@ class Blockchain:
           in the chain match.
         """
         if len(self.newchain) == 0 :
-            # block.previous_hash = self.chain[block.index-1].hash
             previous_hash = self.chain[block.index-1].hash
         
         else:
-            # block.previous_hash = newchain[-1].hash
             previous_hash = newchain[-1].hash
         
         if previous_hash != block.previous_hash:
-            # print("previous_hash" + previous_hash)
-            # print("block.previous_hash" + block.previous_hash)
             return False
-
-        # print("jjjjjj")
 
         if not self.is_valid_proof(block, proof):
             return False
@@ -213,8 +187,6 @@ class Blockchain:
         while not computed_hash.startswith('0' * Blockchain.difficulty):
             block.nonce += 1
             computed_hash = block.compute_hash()
-        #print("the computed hash is: " + computed_hash)
-        #print("the block nonce is: " + str(block.nonce))
         return computed_hash
 
     def add_new_transaction(self, transaction):
@@ -246,7 +218,6 @@ class Blockchain:
             self.add_block(new_block, proof)
 
         else:
-            # new_block.previous_hash = 
             self.recieve_block(new_block)
 
         self.power = self.power - 10
@@ -259,9 +230,9 @@ def calculate_speed(counter, power):
     return speed
 
 def main():
-    miner1 = Blockchain(40, "miner1")
-    miner2 = Blockchain(40, "miner2")
-    miner3_attacker = Blockchain(60, "miner3_attacker")
+    miner1 = Blockchain(50, "miner1")
+    miner2 = Blockchain(50, "miner2")
+    miner3_attacker = Blockchain(80, "miner3_attacker")
     group=[]
     group.append(miner1)
     group.append(miner2)
@@ -269,28 +240,10 @@ def main():
     transaction = ["Alice sends 100 to Bob ", "Liz sends 100 to Nermeen", "Carla sends 50 to Alaa", "Hager sends 40 to Ahmed", "Hadeer sends 50 to Salma","Heba sends 50 to Mariam"]
 
     for i in range(len(transaction)):
-        """
-        if miner1.power < 10:
-            break
-
-        else:
-            if i % 2 != 0:
-                miner1.add_new_transaction(transaction[i])
-                miner1.mine("miner1", miner1.last_block().index+1)
-                miner1.broadcast(miner1.last_block(),group)
-                # print("miner 1 enetered block " + str(i+1) + " is " + miner1.last_block().transactions[0])
-
-            else:
-                miner2.add_new_transaction(transaction[i])
-                miner2.mine("miner2", miner2.last_block().index+1)
-                miner2.broadcast(miner2.last_block(),group)
-                # print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
-        """
         if i % 2 != 0 and miner1.power > 10:
             miner1.add_new_transaction(transaction[i])
             miner1.mine("miner1", miner1.last_block().index+1)
             miner1.broadcast(miner1.last_block(),group)
-            # print("miner 1 enetered block " + str(i+1) + " is " + miner1.last_block().transactions[0])
             miner1.counter = miner1.counter + 1
 
         else:
@@ -300,21 +253,24 @@ def main():
                 miner2.add_new_transaction(transaction[i])
                 miner2.mine("miner2", miner2.last_block().index+1)
                 miner2.broadcast(miner2.last_block(),group)
-                # print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
                 miner2.counter = miner2.counter + 1
+
     miner3_attacker.add_new_transaction("Hadeer sends 1000 to Salma")
     new_block = miner3_attacker.mine("miner3_attacker", 5)
     miner3_attacker.broadcast(new_block, group)
 
-    for i in range(5):
-        if miner3_attacker.power > 10:
-            miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
-            new_block = miner3_attacker.mine("miner3_attacker", i+6)
-            miner3_attacker.broadcast(new_block, group)
-            miner3_attacker.counter = miner3_attacker.counter + 1
-        else:
-            break
-    #miner3_attacker.choose_longest_chain()
+    for i in range(7):
+        miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
+        new_block = miner3_attacker.mine("miner3_attacker", i+6)
+        miner3_attacker.broadcast(new_block, group)
+
+        if miner1.power > 0:
+            miner1.add_new_transaction("Noura sends"+ str(100*i+10)+"to Mahi")
+            new_block = miner1.mine("miner1", i+7)
+            miner1.broadcast(new_block,group)
+
+        miner3_attacker.counter = miner3_attacker.counter + 1
+
     i = 0
     miner1.speed = calculate_speed(miner1.counter, miner1.power)
     miner2.speed = calculate_speed(miner2.counter, miner2.power)
@@ -325,6 +281,7 @@ def main():
     #print("attacker power is: " + str(miner3_attacker.power) )
     print("miner3_attacker speed is " + str(miner3_attacker.speed))
 
+    #print miner 1 main chain
     for b in miner1.chain:
         if i == 0 : 
             i = 1
@@ -333,15 +290,18 @@ def main():
         print("miner 1 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
 
     print("****************************")
-    # for ch in miner1.newchain:
-    #     for b in ch:
-    #         print("miner 1 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+    
+    #print miner 1 branches
+    for ch in miner1.newchain:
+        for b in ch:
+            print("miner 1 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
 
-    #         i = 2
-        #print("***********lllllll*****************")
+        print("***********lllllll*****************")
+        i = 2
 
-    #print("\n")
+    print(" ")
     #########################################
+    #print miner 2 main chain
     i = 0
     for b in miner2.chain:
         if i == 0 : 
@@ -349,17 +309,19 @@ def main():
             continue
          
         print("miner 2 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
-
     print("****************************")
+
+    #print miner 2 branches
     for ch in miner2.newchain:
         for b in ch:
             print("miner 2 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
 
-            i = 2
-        #print("***********lllllll*****************")
+        print("***********lllllll*****************")
+        i = 2
 
-    #print("\n")
+    print(" ")
     #########################################
+    #print miner 3 main chain
     i = 0
     for b in miner3_attacker.chain:
         if i == 0 : 
@@ -369,15 +331,14 @@ def main():
         print("miner 3 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
 
     print("****************************")
-    # for ch in miner3_attacker.newchain:
-    #     for b in ch:
-    #         print("miner 3 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+    
+    #print miner 3 branches
+    for ch in miner3_attacker.newchain:
+        for b in ch:
+            print("miner 3 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
 
-    #         i = 2
-        #print("***********lllllll*****************")
-    # cc= miner3_attacker.get_max_branch(); 
-    # for b in cc: 
-    #     print("cc " + b.transactions[0] + "with index " + str(b.index))
+        i = 2
+        print("***********lllllll*****************")
 
 if __name__ == "__main__":
     main()
