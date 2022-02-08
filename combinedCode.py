@@ -51,50 +51,52 @@ class Blockchain:
             foundchain=False
             for c in self.newchain:
                 if c[-1].owner==block.owner:
+                    block.previous_hash = c[-1].hash
                     proof = self.proof_of_work(block)      
                     self.add_block_newchain(block,proof,c)
                     foundchain=True
                     break
 
             if foundchain==False:
+                ch = newchain[1]
+                block.previous_hash = ch[-1].hash
                 proof = self.proof_of_work(block)      
                 self.add_block_newchain(block,proof,self.newchain[1])    
 
-
-
-            
-            
         else:
-            if block.index>self.last_block().index:
+            if block.index > self.last_block().index:
                 proof = self.proof_of_work(block)      
                 self.add_block(block, proof)
+
             else:
               self.branching_status=True
-              if len(self.newchain)==0:
-                  ch=[]
-                  proof = self.proof_of_work(block)      
-                  self.add_block_newchain(block,proof,ch)
-                  self.newchain.append(ch)
-                  sh=[]
-                  for i in range(block.index,len(self.chain)):
-                      sh.append(self.chain[i])
+              if len(self.newchain) == 0:
+                    ch=[]
+                    block.previous_hash = self.chain[block.index-1].hash
+                    proof = self.proof_of_work(block)      
+                    self.add_block_newchain(block, proof, ch)
+                    self.newchain.append(ch)
+                    
+                    sh=[]
+                    for i in range(block.index,len(self.chain)):
+                        sh.append(self.chain[i])
                         
-                  del self.chain[block.index:len(self.chain)]
+                    del self.chain[block.index:len(self.chain)]
+                    self.newchain.append(sh)
                   
     def broadcast(self,block,group):
-
-        # for i in range(len(group)):
-        #     current_chain=group[i]
-        #     if block.owner!=current_chain.owner:
-        #         current_chain.recieve_block(block)
-        
         for i in range(len(group)):
             current_chain=group[i]
-            if block.owner!=current_chain.owner or block.index>current_chain.last_block().index or current_chain.chain[block.index].transactions !=block.transactions:
+            if block.owner!=current_chain.owner:
                 current_chain.recieve_block(block)
+        
+        # for i in range(len(group)):
+        #     current_chain=group[i]
+        #     if block.owner!=current_chain.owner or block.index>current_chain.last_block().index or current_chain.chain[block.index].transactions !=block.transactions:
+        #         current_chain.recieve_block(block)
 
    
-    def add_block_newchain(self, block, proof,newchain):
+    def add_block_newchain(self, block, proof, newchain):
         """
         A function that adds the block to the chain after verification.
         Verification includes:
@@ -102,14 +104,20 @@ class Blockchain:
         * The previous_hash referred in the block and the hash of latest block
           in the chain match.
         """
-
-        previous_hash = newchain[-1].hash
+        if len(self.newchain) == 0 :
+            # block.previous_hash = self.chain[block.index-1].hash
+            previous_hash = self.chain[block.index-1].hash
+        
+        else:
+            # block.previous_hash = newchain[-1].hash
+            previous_hash = newchain[-1].hash
         
         if previous_hash != block.previous_hash:
-            print("previous_hash" + previous_hash)
-            print("block.previous_hash" + block.previous_hash)
-            
+            # print("previous_hash" + previous_hash)
+            # print("block.previous_hash" + block.previous_hash)
             return False
+
+        # print("jjjjjj")
 
         if not self.is_valid_proof(block, proof):
             return False
@@ -118,6 +126,7 @@ class Blockchain:
         newchain.append(block)
         
         return True
+
     def create_genesis_block(self):
         """
         A function to generate genesis block and appends it to
@@ -197,11 +206,17 @@ class Blockchain:
                            owner = owner)
 
         proof = self.proof_of_work(new_block)
-        if index == self.last_block().index+1:     
-          self.add_block(new_block, proof)
+
+        if index == self.last_block().index + 1:     
+            self.add_block(new_block, proof)
+
+        else:
+            # new_block.previous_hash = 
+            self.recieve_block(new_block)
+
         # self.power = self.power - 10
         self.unconfirmed_transactions = []
-        return new_block.index
+        return new_block
 
 def main():
     miner1 = Blockchain(70, "miner1")
@@ -219,38 +234,72 @@ def main():
 
         else:
             if i % 2 != 0:
-                # if
                 miner1.add_new_transaction(transaction[i])
                 miner1.mine("miner1", miner1.last_block().index+1)
                 miner1.broadcast(miner1.last_block(),group)
-                print("miner 1 enetered block " + str(i+1) + " is " + miner1.last_block().transactions[0])
+                # print("miner 1 enetered block " + str(i+1) + " is " + miner1.last_block().transactions[0])
 
             else:
                 miner2.add_new_transaction(transaction[i])
                 miner2.mine("miner2", miner2.last_block().index+1)
                 miner2.broadcast(miner2.last_block(),group)
-                print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
-    miner3_attacker.add_new_transaction("aaaaaaaaa")
-    new_block = Block(index=index,
-    transactions=self.unconfirmed_transactions,
-    timestamp=time.time(),
-    previous_hash=self.last_block().hash, 
-            owner = owner)
-    
-    i = 0
-    for b in miner2.chain:
-        if i ==0 : 
-            i = 1
-            continue
-         
-        print("miner 2 chain block is " + b.transactions[0])
+                # print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
+
+    miner3_attacker.add_new_transaction("Hadeer sends 1000 to Salma")
+    new_block = miner3_attacker.mine("miner3_attacker", 5)
+    miner3_attacker.broadcast(new_block, group)
+
     i = 0
     for b in miner1.chain:
-        if i ==0 : 
+        if i == 0 : 
             i = 1
             continue
          
-        print("miner 1 chain block is " + b.transactions[0])
+        print("miner 1 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+
+    print("****************************")
+    for ch in miner1.newchain:
+        for b in ch:
+            print("miner 1 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+
+            i = 2
+        print("***********lllllll*****************")
+
+    print("\n")
+    #########################################
+    i = 0
+    for b in miner2.chain:
+        if i == 0 : 
+            i = 1
+            continue
+         
+        print("miner 2 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+
+    print("****************************")
+    for ch in miner2.newchain:
+        for b in ch:
+            print("miner 2 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+
+            i = 2
+        print("***********lllllll*****************")
+
+    print("\n")
+    #########################################
+    i = 0
+    for b in miner3_attacker.chain:
+        if i == 0 : 
+            i = 1
+            continue
+         
+        print("miner 3 Main chain block is " + b.transactions[0] + "with index " + str(b.index))
+
+    print("****************************")
+    for ch in miner3_attacker.newchain:
+        for b in ch:
+            print("miner 3 branch " + str(i) + " block is " + b.transactions[0] + "with index " + str(b.index))
+
+            i = 2
+        print("***********lllllll*****************")
 
 if __name__ == "__main__":
     main()
