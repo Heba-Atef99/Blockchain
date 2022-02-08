@@ -255,13 +255,13 @@ class Blockchain:
 
 # function to calculate the speed
 def calculate_speed(counter, power):
-    speed = power / counter # msh 3arfa htkon kda wla power / speed
+    speed = counter / power # msh 3arfa htkon kda wla power / speed
     return speed
 
 def main():
     miner1 = Blockchain(40, "miner1")
     miner2 = Blockchain(40, "miner2")
-    miner3_attacker = Blockchain(70, "miner3_attacker")
+    miner3_attacker = Blockchain(60, "miner3_attacker")
     group=[]
     group.append(miner1)
     group.append(miner2)
@@ -307,10 +307,13 @@ def main():
     miner3_attacker.broadcast(new_block, group)
 
     for i in range(5):
-        miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
-        new_block = miner3_attacker.mine("miner3_attacker", i+6)
-        miner3_attacker.broadcast(new_block, group)
-        miner3_attacker.counter = miner3_attacker.counter + 1
+        if miner3_attacker.power > 10:
+            miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
+            new_block = miner3_attacker.mine("miner3_attacker", i+6)
+            miner3_attacker.broadcast(new_block, group)
+            miner3_attacker.counter = miner3_attacker.counter + 1
+        else:
+            break
     #miner3_attacker.choose_longest_chain()
     i = 0
     miner1.speed = calculate_speed(miner1.counter, miner1.power)
@@ -318,6 +321,8 @@ def main():
     miner3_attacker.speed = calculate_speed(miner3_attacker.counter, miner3_attacker.power)
     print("miner1 speed is " + str(miner1.speed))
     print("miner2 speed is " + str(miner2.speed))
+    #print("attacker counter is: " + str(miner3_attacker.counter) )
+    #print("attacker power is: " + str(miner3_attacker.power) )
     print("miner3_attacker speed is " + str(miner3_attacker.speed))
 
     for b in miner1.chain:
