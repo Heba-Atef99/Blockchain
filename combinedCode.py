@@ -42,7 +42,8 @@ class Blockchain:
         self.chain = []
         self.owner = owner
         self.newchain=[]
-        
+        self.counter = 0
+        self.speed = 0
         self.create_genesis_block()
         self.power = power
         self.branching_status=False
@@ -217,21 +218,27 @@ class Blockchain:
             # new_block.previous_hash = 
             self.recieve_block(new_block)
 
-        # self.power = self.power - 10
+        self.power = self.power - 10
         self.unconfirmed_transactions = []
         return new_block
 
+# function to calculate the speed
+def calculate_speed(counter, power):
+    speed = power / counter # msh 3arfa htkon kda wla power / speed
+    return speed
+
 def main():
-    miner1 = Blockchain(70, "miner1")
-    miner2 = Blockchain(70, "miner2")
+    miner1 = Blockchain(40, "miner1")
+    miner2 = Blockchain(40, "miner2")
     miner3_attacker = Blockchain(70, "miner3_attacker")
     group=[]
     group.append(miner1)
     group.append(miner2)
     group.append(miner3_attacker)
     transaction = ["Alice sends 100 to Bob ", "Liz sends 100 to Nermeen", "Carla sends 50 to Alaa", "Hager sends 40 to Ahmed", "Hadeer sends 50 to Salma","Heba sends 50 to Mariam"]
-    
+
     for i in range(len(transaction)):
+        """
         if miner1.power < 10:
             break
 
@@ -247,12 +254,35 @@ def main():
                 miner2.mine("miner2", miner2.last_block().index+1)
                 miner2.broadcast(miner2.last_block(),group)
                 # print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
+        """
+        if i % 2 != 0 and miner1.power > 10:
+            miner1.add_new_transaction(transaction[i])
+            miner1.mine("miner1", miner1.last_block().index+1)
+            miner1.broadcast(miner1.last_block(),group)
+            # print("miner 1 enetered block " + str(i+1) + " is " + miner1.last_block().transactions[0])
+            miner1.counter = miner1.counter + 1
 
+        else:
+            if miner2.power < 10:
+                break
+            else:
+                miner2.add_new_transaction(transaction[i])
+                miner2.mine("miner2", miner2.last_block().index+1)
+                miner2.broadcast(miner2.last_block(),group)
+                # print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
+                miner2.counter = miner2.counter + 1
     miner3_attacker.add_new_transaction("Hadeer sends 1000 to Salma")
     new_block = miner3_attacker.mine("miner3_attacker", 5)
     miner3_attacker.broadcast(new_block, group)
-
+    miner3_attacker.counter = miner3_attacker.counter + 1
     i = 0
+    miner1.speed = calculate_speed(miner1.counter, miner1.power)
+    miner2.speed = calculate_speed(miner2.counter, miner2.power)
+    miner3_attacker.speed = calculate_speed(miner3_attacker.counter, miner3_attacker.power)
+    print("miner1 speed is " + str(miner1.speed))
+    print("miner2 speed is " + str(miner2.speed))
+    print("miner3_attacker speed is " + str(miner3_attacker.speed))
+
     for b in miner1.chain:
         if i == 0 : 
             i = 1
