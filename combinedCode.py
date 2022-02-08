@@ -34,7 +34,8 @@ class Block:
 
 class Blockchain:
     # difficulty of our PoW algorithm
-    difficulty = 2
+    difficulty = 4
+    print("N: " +str(difficulty) )
 
     def __init__(self, power, owner):
         self.unconfirmed_transactions = []
@@ -58,7 +59,7 @@ class Blockchain:
                     break
 
             if foundchain==False:
-                ch = newchain[1]
+                ch = self.newchain[1]
                 block.previous_hash = ch[-1].hash
                 proof = self.proof_of_work(block)      
                 self.add_block_newchain(block,proof,self.newchain[1])    
@@ -180,7 +181,8 @@ class Blockchain:
         while not computed_hash.startswith('0' * Blockchain.difficulty):
             block.nonce += 1
             computed_hash = block.compute_hash()
-
+        print("the computed hash is: " + computed_hash)
+        print("the block nonce is: " + str(block.nonce))
         return computed_hash
 
     def add_new_transaction(self, transaction):
@@ -204,9 +206,10 @@ class Blockchain:
                           timestamp=time.time(),
                           previous_hash=self.last_block().hash, 
                            owner = owner)
-
+        start = time.time()
         proof = self.proof_of_work(new_block)
-
+        end = time.time()
+        print("The time taken to solve the Puzzle in Sec: " + str(end - start))
         if index == self.last_block().index + 1:     
             self.add_block(new_block, proof)
 
