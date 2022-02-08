@@ -1,3 +1,4 @@
+from ast import And
 from hashlib import sha256
 import json
 import time
@@ -82,9 +83,14 @@ class Blockchain:
                   
     def broadcast(self,block,group):
 
+        # for i in range(len(group)):
+        #     current_chain=group[i]
+        #     if block.owner!=current_chain.owner:
+        #         current_chain.recieve_block(block)
+        
         for i in range(len(group)):
             current_chain=group[i]
-            if block.owner!=current_chain.owner:
+            if block.owner!=current_chain.owner or block.index>current_chain.last_block().index or current_chain.chain[block.index].transactions !=block.transactions:
                 current_chain.recieve_block(block)
 
    
@@ -191,7 +197,8 @@ class Blockchain:
                            owner = owner)
 
         proof = self.proof_of_work(new_block)
-        self.add_block(new_block, proof)
+        if index == self.last_block().index+1:     
+          self.add_block(new_block, proof)
         # self.power = self.power - 10
         self.unconfirmed_transactions = []
         return new_block.index
@@ -223,6 +230,12 @@ def main():
                 miner2.mine("miner2", miner2.last_block().index+1)
                 miner2.broadcast(miner2.last_block(),group)
                 print("miner 2 enetered block " + str(i+1) + " is " + miner2.last_block().transactions[0])
+    miner3_attacker.add_new_transaction("aaaaaaaaa")
+    new_block = Block(index=index,
+    transactions=self.unconfirmed_transactions,
+    timestamp=time.time(),
+    previous_hash=self.last_block().hash, 
+            owner = owner)
     
     i = 0
     for b in miner2.chain:
@@ -230,14 +243,14 @@ def main():
             i = 1
             continue
          
-        # print("miner 2 chain block is " + b.transactions[0])
+        print("miner 2 chain block is " + b.transactions[0])
     i = 0
     for b in miner1.chain:
         if i ==0 : 
             i = 1
             continue
          
-        # print("miner 1 chain block is " + b.transactions[0])
+        print("miner 1 chain block is " + b.transactions[0])
 
 if __name__ == "__main__":
     main()
