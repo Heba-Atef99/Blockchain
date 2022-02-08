@@ -13,7 +13,7 @@ class Node:
         """
     def receive_block(self, block):
         flag=False
-        print("inside" + block.transactions[0])
+        #print("inside" + block.transactions[0])
         for i in range(len(self.branches)):
             # print("inside" + str(i) + block.transctions[0])
             # print(self.branches[i].chain[0].owner)
@@ -35,7 +35,8 @@ class Node:
             # breakpoint()
             self.branches.append(new_blockchain)
         
-        print(len(self.branches[0].chain))
+        #print(len(self.branches[0].chain))
+        self.choose_longest_chain()
         return flag
 
         
@@ -71,8 +72,11 @@ class Node:
         #self.main_branch.extend
         for i in range(len(max_branch.chain)):
             proof = self.main_branch.proof_of_work(max_branch.chain[i])
-            # print("add blk 3")
             self.main_branch.add_block(max_branch.chain[i], proof)
+            # print("add blk 3")
+            #self.main_branch.chain.extend(max_branch.chain)
+            #print("the length of the main branch is inside   " +str(len(self.main_branch.chain)) )
+
 
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, owner):
@@ -202,8 +206,10 @@ def main():
         block = miner1.mine()
         user1.receive_block(miner1.last_block())
 
-    print(len(user1.branches[0].chain))
-    for i in range(len(user1.main_branch.chain)):
+    print("the length " +str(len(user1.branches[0].chain)) )
+    print("the length of the main branch is  " +str(len(user1.main_branch.chain)) ) 
+    for i in range(len(user1.main_branch.chain) - 1):
+        #z = json.loads(user1.main_branch.chain[i].transactions[0])
         print("user first received block is " + user1.main_branch.chain[i].transactions[0])
     
 if __name__ == "__main__":
