@@ -238,7 +238,7 @@ def main():
     group.append(miner2)
     group.append(miner3_attacker)
     transaction = ["Alice sends 100 to Bob ", "Liz sends 100 to Nermeen", "Carla sends 50 to Alaa", "Hager sends 40 to Ahmed", "Hadeer sends 50 to Salma","Heba sends 50 to Mariam"]
-
+    time1 = time.time()
     for i in range(len(transaction)):
         if i % 2 != 0 and miner1.power > 10:
             miner1.add_new_transaction(transaction[i])
@@ -254,32 +254,55 @@ def main():
                 miner2.mine("miner2", miner2.last_block().index+1)
                 miner2.broadcast(miner2.last_block(),group)
                 miner2.counter = miner2.counter + 1
-
+    time2 = time.time()
+    attacktime = time.time()
     miner3_attacker.add_new_transaction("Hadeer sends 1000 to Salma")
     new_block = miner3_attacker.mine("miner3_attacker", 5)
     miner3_attacker.broadcast(new_block, group)
-
+    miner3_attacker.counter = miner3_attacker.counter + 1
+    
     for i in range(7):
-        miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
-        new_block = miner3_attacker.mine("miner3_attacker", i+6)
-        miner3_attacker.broadcast(new_block, group)
+        if miner3_attacker.power > 10:
+                
+            miner3_attacker.add_new_transaction("Hadeer sends"+ str(100*i+50)+"to Salma")
+            new_block = miner3_attacker.mine("miner3_attacker", i+6)
+            miner3_attacker.broadcast(new_block, group)
+            """
+            if miner1.power > 10:
+                miner1.add_new_transaction("Noura sends"+ str(100*i+10)+"to Mahi")
+                new_block = miner1.mine("miner1", i+7)
+                miner1.broadcast(new_block,group)
+                miner1.counter = miner1.counter + 1
+            """
+            
 
-        if miner1.power > 0:
-            miner1.add_new_transaction("Noura sends"+ str(100*i+10)+"to Mahi")
-            new_block = miner1.mine("miner1", i+7)
-            miner1.broadcast(new_block,group)
-
-        miner3_attacker.counter = miner3_attacker.counter + 1
-
+            miner3_attacker.counter = miner3_attacker.counter + 1
+        else:
+            break
+    finalattacktime = time.time()
+    t1 = time.time()
+    for i in range(7):
+        if miner1.power > 10:
+                miner1.add_new_transaction("Noura sends"+ str(100*i+10)+"to Mahi")
+                new_block = miner1.mine("miner1", i+7)
+                miner1.broadcast(new_block,group)
+                miner1.counter = miner1.counter + 1
+    t2 = time.time()
+    
     i = 0
-    miner1.speed = calculate_speed(miner1.counter, miner1.power)
-    miner2.speed = calculate_speed(miner2.counter, miner2.power)
-    miner3_attacker.speed = calculate_speed(miner3_attacker.counter, miner3_attacker.power)
+    miner1.speed = calculate_speed(miner1.counter, miner1.power )
+    miner2.speed = calculate_speed(miner2.counter, miner2.power )
+    miner3_attacker.speed = calculate_speed(miner3_attacker.counter, miner3_attacker.power )
     print("miner1 speed is " + str(miner1.speed))
     print("miner2 speed is " + str(miner2.speed))
-    #print("attacker counter is: " + str(miner3_attacker.counter) )
-    #print("attacker power is: " + str(miner3_attacker.power) )
     print("miner3_attacker speed is " + str(miner3_attacker.speed))
+    attackspeed = finalattacktime - attacktime
+    speed12 = time2 - time1
+    speed1 = speed12 + t2 - t1
+    print("attacker speed is: " + str(calculate_speed(miner3_attacker.counter, attackspeed)) +" Block per Second")
+    print("miner1 speed is: " + str(calculate_speed(miner1.counter, speed1)) + " Block per Second")
+    print("miner2 speed is: "+ str(calculate_speed(miner2.counter, speed12)) + " Block per Second")
+
 
     #print miner 1 main chain
     for b in miner1.chain:
